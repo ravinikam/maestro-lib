@@ -1,0 +1,33 @@
+/*
+ * Copyright 2017 General Electric Company. All rights reserved.
+ */
+
+package {{configPackage}};
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+/**
+ * Home redirection to swagger api documentation
+ */
+@Controller
+public class SwaggerController
+{
+
+    public static final String REDIRECT_SWAGGER_UI_HTML = "redirect:swagger-ui.html";
+
+
+    /**
+     * Generates a default web page to access all REST end points
+     *
+     * @return HTML page with the APIs for the service.
+     */
+    @RequestMapping(value = "/api", method = RequestMethod.GET)
+    public String index()
+    {
+        return REDIRECT_SWAGGER_UI_HTML;
+    }
+
+
+}

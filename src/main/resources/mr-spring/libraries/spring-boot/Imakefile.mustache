@@ -1,0 +1,24 @@
+
+TOOLSET = HOST_JAVA_MAESTRO
+
+#define BuildThis()                                              @@\
+                                                                 @@\
+XCOMM -----------------------------------------------------------@@\
+XCOMM                                                            @@\
+XCOMM  Rule: "BuildThis()"                                       @@\
+XCOMM                                                            @@\
+                                                                 @@\
+GRADLE = ./gradlew                                               @@\
+GRADLE_HOME = TOPDIR/host/developmentTools/gradle/setup/.gradle  @@\
+                                                                 @@\
+all::                                                            @@\
+	$(GRADLE) -g $(GRADLE_HOME) clean build jar -x test          @@\
+                                                                 @@\
+clean::                                                          @@\
+	$(GRADLE) -g $(GRADLE_HOME) clean                            @@\
+                                                                 @@\
+XCOMM -----------------------------------------------------------@@\
+
+
+
+BuildThis()
