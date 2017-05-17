@@ -1,0 +1,44 @@
+package {{package}};
+
+{{^jdk8-no-delegate}}
+{{#imports}}import {{import}};
+{{/imports}}
+
+{{/jdk8-no-delegate}}
+{{^jdk8-no-delegate}}
+
+import java.util.List;
+{{#async}}
+import java.util.concurrent.Callable;
+{{/async}}{{/jdk8-no-delegate}}
+{{#useBeanValidation}}
+import javax.validation.constraints.*;
+import javax.validation.Valid;
+{{/useBeanValidation}}
+{{>generatedAnnotation}}
+{{#operations}}
+public class {{classname}}Impl implements {{classname}} {
+{{#isDelegate}}
+    private final {{classname}}Delegate delegate;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public {{classname}}Impl({{classname}}Delegate delegate) {
+        this.delegate = delegate;
+    }{{/isDelegate}}
+
+{{^jdk8-no-delegate}}{{#operation}}
+    public {{#async}}Callable<{{/async}}{{>returnTypes}}{{#async}}>{{/async}} {{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}},
+        {{/hasMore}}{{/allParams}}) {
+        // do some magic! Implement logic here. {{^isDelegate}}{{^async}}
+        return new {{>returnTypes}}();{{/async}}{{#async}}
+        return new Callable<{{>returnTypes}}>() {
+            @Override
+            public {{>returnTypes}} call() throws Exception {
+                return new {{>returnTypes}}();
+            }
+        };{{/async}}{{/isDelegate}}{{#isDelegate}}
+        return delegate.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});{{/isDelegate}}
+    }
+{{/operation}}{{/jdk8-no-delegate}}
+}
+{{/operations}}
