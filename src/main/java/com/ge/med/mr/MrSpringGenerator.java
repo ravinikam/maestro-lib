@@ -297,6 +297,7 @@ public class MrSpringGenerator extends AbstractJavaCodegen implements BeanValida
             }
             else
             {
+                apiTemplateFiles.put("apiImpl.mustache", "Impl.java");
                 apiTemplateFiles.put("apiController.mustache", "Controller.java");
                 supportingFiles.add(new SupportingFile("apiException.mustache",
                                                        (expModule + sourceFolder + File.separator + apiPackage)

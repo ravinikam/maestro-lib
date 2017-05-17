@@ -1,3 +1,6 @@
+/*
+ * Copyright 2017 General Electric Company. All rights reserved.
+ */
 package {{package}};
 
 {{^jdk8-no-delegate}}
@@ -15,20 +18,27 @@ import java.util.concurrent.Callable;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
 {{/useBeanValidation}}
+
+/**
+ * Implementation of {@link {{classname}} } API
+ */
+@Component
 {{>generatedAnnotation}}
 {{#operations}}
-public class {{classname}}Impl implements {{classname}} {
+public class {{classname}}Impl implements {{classname}}
+{
 {{#isDelegate}}
     private final {{classname}}Delegate delegate;
 
     @org.springframework.beans.factory.annotation.Autowired
     public {{classname}}Impl({{classname}}Delegate delegate) {
         this.delegate = delegate;
-    }{{/isDelegate}}
-
+    }
+{{/isDelegate}}
 {{^jdk8-no-delegate}}{{#operation}}
-    public {{#async}}Callable<{{/async}}{{>returnTypes}}{{#async}}>{{/async}} {{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}},
-        {{/hasMore}}{{/allParams}}) {
+    @Override
+    public {{#async}}Callable<{{/async}}{{>returnTypes}}{{#async}}>{{/async}} {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+    {
         // do some magic! Implement logic here. {{^isDelegate}}{{^async}}
         return new {{>returnTypes}}();{{/async}}{{#async}}
         return new Callable<{{>returnTypes}}>() {
@@ -39,6 +49,8 @@ public class {{classname}}Impl implements {{classname}} {
         };{{/async}}{{/isDelegate}}{{#isDelegate}}
         return delegate.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});{{/isDelegate}}
     }
+
 {{/operation}}{{/jdk8-no-delegate}}
+
 }
 {{/operations}}
