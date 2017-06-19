@@ -1,8 +1,10 @@
 /*
- * Copyright 2017 My Company. All rights reserved.
+ * Copyright {{year}} General Electric Company. All rights reserved.
  */
 
 package {{configPackage}};
+
+import io.swagger.annotations.ApiOperation;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +25,7 @@ public class SwaggerController
      *
      * @return HTML page with the APIs for the service.
      */
+    @ApiOperation(value = "To access all end points", response = String.class, tags={ "api"})
     @RequestMapping(value = "/api", method = RequestMethod.GET)
     public String index()
     {

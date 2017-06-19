@@ -1,0 +1,29 @@
+#Copyright {{year}} General Electric Company. All rights reserved.
+
+FROM hc-us-east-aws-artifactory.cloud.health.ge.com/maestro/helios:6.7.1-1
+
+ENV USER=vmuser \
+    LANG=en_US.UTF-8 \
+    P4WORKSPACE=/opt/workspace \
+    http_proxy=http://http-proxy.health.ge.com:88/ \
+    https_proxy=http://http-proxy.health.ge.com:88/ \
+    no_proxy=localhost,127.0.0.0/8,::1,ge.com
+
+RUN rpm --rebuilddb && \
+    yum -y reinstall glibc-common && \
+    yum clean all
+
+# Configure users and proxy certificate
+RUN adduser -ms /bin/bash -u 1000 -U ${USER} && \
+    chown ${USER}:${USER} -R /home/${USER} && \
+    update-ca-trust force-enable && \
+    curl --create-dirs https://static.gecirtnotification.com/browser_remediation/packages/GE_External_Root_CA_2_1.cer -o /etc/pki/ca-trust/source/anchors/GE_External_Root_CA_2_1.cer && \
+    update-ca-trust extract
+
+# Install Oracle JDK
+RUN curl -L -O -H "Cookie: oraclelicense=accept-securebackup-cookie" -k "http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-linux-x64.rpm" && \
+    rpm -ivh jdk-8u121-linux-x64.rpm && \
+    rm -f jdk-8u121-linux-x64.rpm && \
+    /usr/java/latest/bin/keytool -import -noprompt -trustcacerts -storepass "changeit" -alias MY_ALIAS -file /etc/pki/ca-trust/source/anchors/GE_External_Root_CA_2_1.cer -keystore "/usr/java/latest/jre/lib/security/cacerts"
+
+USER vmuser

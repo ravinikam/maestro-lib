@@ -1,0 +1,12 @@
+#!/bin/bash
+#Copyright {{year}} General Electric Company. All rights reserved.
+
+SCRIPT_PATH=$(cd $(dirname $0); pwd -P)
+docker build -t maestro/{{artifactId}}_build $SCRIPT_PATH
+
+if [ "$1" == "ci" ]; then
+    shift
+    docker run --rm -v store:/c/uws -v $SCRIPT_PATH/../../../..:/opt/workspace --name {{artifactId}}_build -t maestro/{{artifactId}}_build /opt/workspace/host/services/{{artifactId}}/{{artifactId}}-docker/build-{{artifactId}}.sh $@
+else
+    docker run --rm -v /home/vmuser:/home/vmuser -v $SCRIPT_PATH/../../../..:/opt/workspace --name {{artifactId}}_build -it maestro/{{artifactId}}_build /opt/workspace/host/services/{{artifactId}}/{{artifactId}}-docker/build-{{artifactId}}.sh $@
+fi

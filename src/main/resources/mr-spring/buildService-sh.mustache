@@ -1,0 +1,15 @@
+#!/bin/bash
+#Copyright {{year}} General Electric Company. All rights reserved.
+
+SCRIPT_PATH=$(cd $(dirname $0); pwd -P)
+
+cd $SCRIPT_PATH/..
+
+#Automatically import system proxy settings. Credit: https://stackoverflow.com/a/8175471/1524989
+if [ -n "$http_proxy" ] ; then
+    PROXY_HOST=$(echo $http_proxy | sed 's/http:\/\/\(.*\):.*/\1/')
+    PROXY_PORT=$(echo $http_proxy | sed 's/http:\/\/.*:\(.*\)/\1/' | tr -d "/")
+    export GRADLE_OPTS="-Dhttp.proxyHost=$PROXY_HOST -Dhttp.proxyPort=$PROXY_PORT -Dhttps.proxyHost=$PROXY_HOST -Dhttps.proxyPort=$PROXY_PORT"
+fi
+
+$@

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright {{year}} General Electric Company. All rights reserved. -->
+<configuration>
+
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd/HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.ge.med.mr" level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

@@ -1,0 +1,277 @@
+/*
+ * Copyright {{year}} General Electric Company. All rights reserved.
+ */
+
+buildscript {
+
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.+"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.4.18"
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5"
+    }
+
+    repositories {
+        maven {
+            url "https://hc-us-east-aws-artifactory.cloud.health.ge.com/artifactory/maven-ext"
+        }
+    }
+}
+
+plugins {
+    id "idea"
+    id "org.sonarqube" version "2.5"
+    id "com.jfrog.artifactory" version "4.4.18"
+    id "maven-publish"
+}
+
+def cucumberVersion = "1.2.+"
+def javaxValidationVersion = "1.1.0.Final"
+def powerMockVersion = "1.6.+"
+def springFoxVersion = "2.6.+"
+def springBootVersion = "1.5.+"
+def swaggerVersion = "1.5.+"
+def eurekaVersion = '1.3.+'
+
+group "{{basePackage}}"
+
+allprojects {
+    apply plugin: "java"
+    apply plugin: "jacoco"
+ 
+    version "1.0.0-SNAPSHOT"
+ 
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+ 
+    tasks.withType(JavaCompile) {
+        options.compilerArgs += "-Xlint"
+        options.compilerArgs += "-Werror"
+    }
+ 
+    test.finalizedBy jacocoTestReport
+    test {
+        systemProperty "cucumber.options", System.properties.getProperty("cucumber.options") ?: "--tags ~@wip -p pretty"
+ 
+        testLogging {
+            events "standardOut", "standardError"
+            exceptionFormat "full"
+        }
+    }
+ 
+    jacocoTestReport {
+        reports {
+            html.enabled = true
+        }
+    }
+ 
+    repositories {
+        maven {
+            url "https://hc-us-east-aws-artifactory.cloud.health.ge.com/artifactory/maven-ext"
+        }
+        maven {
+            url "http://badger.mr.med.ge.com:8081/artifactory/maven-release-mr"
+        }
+        maven {
+            url "http://badger.mr.med.ge.com:8081/artifactory/maven-snapshot-mr"
+        }
+    }
+}
+ 
+task {{artifactId}}ServiceTar(type: Tar, dependsOn: ":{{artifactId}}-ws:assemble") {
+    baseName = "{{serviceName}}Service"
+ 
+    from("${project(':{{artifactId}}-impl').projectDir}/src/main/resources")
+    from("${project(':{{artifactId}}-ws').buildDir}/libs/") {
+        include("*-boot.jar")
+    }
+ 
+    destinationDir = buildDir
+    extension = "tgz"
+    compression = Compression.GZIP
+}
+ 
+publishing {
+    publications {
+        {{artifactId}}Interface(MavenPublication) {
+            artifactId "{{artifactId}}"
+            version = "v1"
+            artifact "{{artifactId}}.yaml"
+        }
+
+        {{artifactId}}Service(MavenPublication) {
+            artifactId "{{serviceName}}Service"
+            version "$project.version"
+            artifact({{artifactId}}ServiceTar)
+        }
+    }
+}
+ 
+task interfacePublication(dependsOn: "generatePomFileFor{{serviceName}}InterfacePublication") {
+    doLast {
+        artifactoryPublish {
+            doFirst {
+                publications(publishing.publications.{{artifactId}}Interface)
+                clientConfig.publisher.repoKey = "maven-release-mr"
+            }
+        }
+    }
+}
+ 
+task servicePublication(dependsOn: ["{{artifactId}}ServiceTar", "generatePomFileFor{{serviceName}}ServicePublication"]) {
+    doLast {
+        artifactoryPublish {
+            doFirst {
+                publications(publishing.publications.{{artifactId}}Service)
+                clientConfig.publisher.repoKey = "maven-snapshot-mr"
+            }
+        }
+    }
+}
+
+artifactory {
+    contextUrl = project.properties["artifactory_contextUrl"] ?: "Artifactory URL not set"
+    publish {
+        repository {
+            username = project.properties["artifactory_user"] ?: "Artifactory User"
+            password = project.properties["artifactory_password"] ?: "Artifactory Password"
+            maven = true
+        }
+        defaults {
+            publishArtifacts = true
+            publishPom = true //Publish generated POM files to Artifactory (true by default)
+            publishIvy = false //Publish generated Ivy descriptor files to Artifactory (true by default)
+            properties {
+                // This adds a property of content-type to each yaml artifact published with the value of
+                // application/yaml.  This is necessary so that when doing a get on the artifact url directly, the
+                // artifactory server will set the content-type correctly.
+                all "{{basePackage}}:*:*:*@yaml", "artifactory.content-type": "application/yaml"
+            }
+        }
+    }
+}
+
+project.tasks["sonarqube"].doLast {
+    println "Sonar Report link : " + buildDir + "/sonar/issues-report/issues-report.html"
+}
+
+sonarqube {
+    properties {
+        property "sonar.exclusions", "**/model/**,**/api/{{serviceName}}.java,**/ws/{{serviceName}}Controller.java"
+    }
+}
+
+project(":{{artifactId}}-api") {
+
+    configurations {
+        mrSwagger
+    }
+
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+        resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
+    }
+
+    dependencies {
+        compile("io.swagger:swagger-annotations:" + swaggerVersion)
+        compile("io.springfox:springfox-swagger2:" + springFoxVersion)
+        compile("javax.validation:validation-api:" + javaxValidationVersion)
+        mrSwagger("com.ge.med.mr.Shared_Service_Utils:mr-swagger-codegen:1.2.0-SNAPSHOT")
+    }
+
+    task copySwaggerCodegen(type: Copy) {
+        from configurations.mrSwagger
+        into "$buildDir"
+        rename "mr-swagger-codegen-1.2.0-SNAPSHOT.jar", "mr-swagger-codegen.jar"
+    }
+
+    task cleanGeneratedDirectory(type: Delete) {
+        delete "$projectDir/src/main/java/com/ge/med/mr/{{artifactId}}/model"
+        delete "$projectDir/src/main/java/com/ge/med/mr/{{artifactId}}/api/{{serviceName}}.java"
+        delete "$projectDir/src/main/java/com/ge/med/mr/{{artifactId}}/ws/{{serviceName}}Controller.java"
+    }
+    clean.dependsOn cleanGeneratedDirectory
+
+    task generateApisModels(type: Exec, dependsOn: copySwaggerCodegen) {
+        def specs = file("$projectDir/../{{artifactId}}.yaml")
+        commandLine "java", "-Dapis", "-Dmodels", "-cp", "$buildDir/mr-swagger-codegen.jar",
+                        "io.swagger.codegen.SwaggerCodegen", "generate", "-l", "mr-spring", "-i", specs.absolutePath,
+                        "-o", "$projectDir/..", "--artifact-id={{artifactId}}"
+        inputs.files specs
+        outputs.dir("$projectDir/src/main/")
+        outputs.dir("${project(":{{artifactId}}-ws").projectDir}/src/main/")
+    }
+    compileJava.dependsOn generateApisModels
+}
+
+project(":{{artifactId}}-impl") {
+    dependencies {
+        compile project(":{{artifactId}}-api")
+
+        compile("org.springframework.boot:spring-boot-starter:" + springBootVersion)
+        compile("org.springframework.boot:spring-boot-starter-aop:" + springBootVersion)
+        compile("org.springframework.boot:spring-boot-starter-web:" + springBootVersion)
+
+        testCompile("info.cukes:cucumber-java8:" + cucumberVersion)
+        testCompile("info.cukes:cucumber-junit:" + cucumberVersion)
+        testCompile("info.cukes:cucumber-spring:" + cucumberVersion)
+        testCompile("org.springframework.boot:spring-boot-starter-test:" + springBootVersion)
+        testCompile("org.powermock:powermock-api-mockito:" + powerMockVersion)
+        testCompile("org.powermock:powermock-module-junit4:" + powerMockVersion)
+    }
+}
+
+project(":{{artifactId}}-ws") {
+
+    apply plugin: "org.springframework.boot"
+
+    bootRepackage {
+        classifier = "boot"
+    }
+
+    dependencies {
+        compile project(":{{artifactId}}-api")
+        compile("io.swagger:swagger-annotations:" + swaggerVersion)
+        compile("io.springfox:springfox-swagger2:" + springFoxVersion)
+        compile("org.springframework.boot:spring-boot-starter-web:" + springBootVersion)
+        compile("org.springframework.cloud:spring-cloud-starter-eureka:" + eurekaVersion)
+
+        runtime project(":{{artifactId}}-impl")
+        runtime("io.springfox:springfox-swagger-ui:" + springFoxVersion)
+        runtime("org.springframework.boot:spring-boot-starter-actuator")
+
+        testCompile("info.cukes:cucumber-java8:" + cucumberVersion)
+        testCompile("info.cukes:cucumber-junit:" + cucumberVersion)
+        testCompile("info.cukes:cucumber-spring:" + cucumberVersion)
+        testCompile("org.powermock:powermock-api-mockito:" + powerMockVersion)
+        testCompile("org.powermock:powermock-module-junit4:" + powerMockVersion)
+        testCompile("org.springframework.boot:spring-boot-starter-test:" + springBootVersion)
+    }
+}
+
+// This final section is for generating all of the Javadoc from our multiple projects into a single directory.
+
+def exportedProjects = [
+        ":{{artifactId}}-api",
+        ":{{artifactId}}-impl",
+        ":{{artifactId}}-ws"
+]
+
+task alljavadoc(type: Javadoc) {
+    source = exportedProjects.collect { project(it).sourceSets.main.allJava }
+    classpath = files(exportedProjects.collect { project(it).sourceSets.main.compileClasspath })
+    destinationDir = file("${buildDir}/docs/javadoc/{{artifactId}}-service")
+}
+
+task publishjavadoc(type: Copy, dependsOn: alljavadoc) {
+    try {
+        // Delete any existing JavaDoc in the destination directory
+        File destDir = file(project.properties.get("docDestDir") + "/{{artifactId}}-service")
+        delete(destDir)
+        // Copy JavaDoc published by the task "alljavadoc" to the destination directory
+        from "${buildDir}/docs/javadoc/{{artifactId}}-service"
+        into project.properties.get("docDestDir") + "/{{artifactId}}-service"
+    }
+    catch (Exception e) {
+        println e
+    }
+}

@@ -1,0 +1,60 @@
+/*
+ * Copyright {{year}} General Electric Company. All rights reserved.
+ */
+
+package {{basePackage}}.aop;
+
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+/**
+ * Spring aop unit tests for {@link LoggingAspect}
+ */
+public class LoggingAspectTest
+{
+    private static final String TEST_METHOD_NAME = "testMethod";
+    @Mock
+    ProceedingJoinPoint pJoinPoint;
+    private LoggingAspect aopLogger;
+    @Mock
+    private Signature signature;
+
+    @Before
+    public void setup()
+    {
+        MockitoAnnotations.initMocks(this);
+
+        aopLogger = new LoggingAspect();
+    }
+
+    @Test
+    public void testProfileAdvice() throws Throwable
+    {
+        // given
+        boolean expectedResult = true;
+        when(pJoinPoint.getSignature()).thenReturn(signature);
+        when(signature.getName()).thenReturn(TEST_METHOD_NAME);
+        when(pJoinPoint.getTarget()).thenReturn(this);
+        when(pJoinPoint.proceed()).thenReturn(true);
+
+        // when
+        Object actualResult = aopLogger.profile(pJoinPoint);
+
+        // then
+        verify(pJoinPoint, times(2)).getSignature();
+        verify(pJoinPoint, times(2)).getTarget();
+        verify(pJoinPoint, times(1)).proceed();
+        verify(signature, times(2)).getName();
+
+        Assert.assertEquals(expectedResult, actualResult);
+    }
+}

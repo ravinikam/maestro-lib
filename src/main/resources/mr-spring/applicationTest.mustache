@@ -1,0 +1,89 @@
+/*
+ * Copyright {{year}} General Electric Company. All rights reserved.
+ */
+ 
+package {{basePackage}};
+ 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
+ 
+import java.util.ArrayList;
+import java.util.List;
+ 
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+ 
+/**
+ * Unit test for {@link {{classname}}Application}
+ */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({SpringApplication.class})
+public class {{classname}}ApplicationTest
+{
+ 
+    private {{classname}}Application {{classVarName}}Application;
+    private ConfigurableApplicationContext context;
+ 
+ 
+    @Before
+    public final void setup()
+    {
+        mockStatic(SpringApplication.class);
+        context = mock(ConfigurableApplicationContext.class);
+        {{classVarName}}Application = new {{classname}}Application();
+    }
+ 
+ 
+    @Test
+    public final void testApplicationMain() throws Exception
+    {
+        // given
+        assertNotNull(context); //assertion on precondition before actual call
+        when(SpringApplication.run(any({{classname}}Application.class), any(String[].class)))
+                .thenReturn(context);
+ 
+        // when
+        {{classname}}Application.main(new String[] {"test"});
+ 
+        // then
+        // Starts verify behavior and verifies how many times following static method call is made
+        verifyStatic(times(1));
+        // Static method to verify
+        SpringApplication.run(any({{classname}}Application.class), any(String[].class));
+    }
+ 
+ 
+    @Test
+    public final void testHttpMessageConverterConfig()
+    {
+        //given
+        List<HttpMessageConverter<?>> converters = new ArrayList<>();
+        converters.add(new StringHttpMessageConverter());
+        converters.add(new MappingJackson2HttpMessageConverter());
+        int expSize = converters.size();
+ 
+        //when
+        {{classVarName}}Application.extendMessageConverters(converters);
+ 
+        //then
+        assertEquals((long) expSize, (long) converters.size());
+        assertTrue(converters.get(0) instanceof MappingJackson2HttpMessageConverter);
+    }
+ 
+ 
+}

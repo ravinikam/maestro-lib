@@ -1,0 +1,41 @@
+/*
+ * Copyright {{year}} General Electric Company. All rights reserved.
+ */
+
+
+package {{configPackage}};
+
+import {{basePackage}}.{{classname}}Application;
+
+import cucumber.api.java8.En;
+
+import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+
+/**
+ * Step definitions for {{artifactId}} BDD tests over REST layer.
+ */
+@AutoConfigureMockMvc
+@ContextConfiguration
+@SpringBootTest(classes = {{classname}}Application.class)
+public class {{classname}}RestStepDefs implements En
+{
+    @Autowired
+    private MockMvc mockMvc;
+    private ResultActions result;
+
+    private String swaggerPage;
+
+    public {{classname}}RestStepDefs()
+    {
+        MockitoAnnotations.initMocks(this);
+        // TODO - implement step definitions here
+    }
+
+
+}

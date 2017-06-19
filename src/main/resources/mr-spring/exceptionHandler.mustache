@@ -1,0 +1,191 @@
+/*
+ * Copyright {{year}} General Electric Company. All rights reserved.
+ */
+
+package {{basePackage}}.handler;
+
+import static {{basePackage}}.exception.{{classname}}Exception.BAD_INPUT_ERROR_SUB_CODE;
+import static {{basePackage}}.exception.{{classname}}Exception.ERROR_CODE;
+import static {{basePackage}}.exception.{{classname}}Exception.GENERAL_ERROR_SUB_CODE;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import {{modelPackage}}.Error;
+import {{modelPackage}}.ErrorMeta;
+import {{modelPackage}}.Errors;
+import {{basePackage}}.exception.{{classname}}Exception;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.concurrent.ExecutionException;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
+
+/**
+ * Central exception handler class for all controllers in {{artifactId}} service.
+ */
+@ControllerAdvice("{{configPackage}}")
+public class {{classname}}ExceptionHandler
+{
+    /**
+     * The Logger object for the class
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger({{classname}}ExceptionHandler.class);
+
+    /**
+     * Creates response for all client Exceptions thrown during rest execution
+     *
+     * @param exception exception to be thrown
+     * @return Errors object from client
+     */
+    private Errors handleClientException(HttpStatusCodeException exception)
+    {
+        Errors errors = null;
+        try
+        {
+            errors = new ObjectMapper().readValue(exception.getResponseBodyAsString(), Errors.class);
+        }
+        catch (Exception e)
+        {
+            LOGGER.warn("Unable to parse error response from client", e);
+        }
+        LOGGER.debug(String.valueOf(errors));
+        return errors;
+    }
+
+    /**
+     * Creates response for HttpMessageNotReadable exception thrown during rest execution. One instance where this
+     * exception is thrown is when invalid json is posted.
+     *
+     * @param exception exception to be thrown
+     * @return Http response with Errors object
+     */
+    private Errors handleBadInputException(Exception exception)
+    {
+        LOGGER.error(exception.getMessage(), exception);
+
+        Error error = new Error().code(ERROR_CODE).subcode(BAD_INPUT_ERROR_SUB_CODE)
+                .message(exception.getMessage().split("\\n")[0])
+                .meta(new ErrorMeta().details(getStacktraceAsString(exception)));
+        return new Errors().addErrorsItem(error);
+    }
+
+    /**
+     * Creates generic response for all types of exceptions thrown during rest execution
+     *
+     * @param exception exception to be thrown
+     * @return Http response with Errors object
+     */
+    @ExceptionHandler
+    public ResponseEntity<Errors> handleExceptions(HttpServletRequest request, Exception exception)
+    {
+        // use request to populate error object with details like requestId
+        LOGGER.debug(String.valueOf(request));
+        LOGGER.error(exception.getMessage(), exception);
+
+        // default headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        Exception exceptionCause = getExecutionExceptionCause(exception);
+
+        Errors errors = getDefaultErrors(exception, exceptionCause == null);
+
+        ResponseEntity<Errors> response = new ResponseEntity<>(errors, headers, INTERNAL_SERVER_ERROR);
+        if (exception instanceof HttpMessageNotReadableException)
+        {
+            response = new ResponseEntity<>(handleBadInputException(exception), headers, UNPROCESSABLE_ENTITY);
+        }
+        else if (exceptionCause instanceof IllegalStateException)
+        {
+            response = new ResponseEntity<>(handleBadInputException(exceptionCause), headers, BAD_REQUEST);
+        }
+        else if (exceptionCause instanceof HttpServerErrorException)
+        {
+            response = new ResponseEntity<>(handleClientException((HttpStatusCodeException) exceptionCause), headers,
+                                            INTERNAL_SERVER_ERROR);
+        }
+        else if (exceptionCause instanceof HttpClientErrorException)
+        {
+            response = new ResponseEntity<>(handleClientException((HttpStatusCodeException) exceptionCause), headers,
+                                            NOT_FOUND);
+        }
+        return response;
+    }
+
+    /**
+     * Create default error message with common details
+     *
+     * @param exception   Original exception
+     * @param isCauseNull True if execution exception is null
+     * @return new default errors object
+     */
+    private Errors getDefaultErrors(Exception exception, boolean isCauseNull)
+    {
+        Errors errors = new Errors();
+        Error error = new Error().code(ERROR_CODE).subcode(GENERAL_ERROR_SUB_CODE)
+                .message("An unexpected {{artifactId}} error has occurred")
+                .meta(new ErrorMeta().details(getStacktraceAsString(exception)));
+        errors.addErrorsItem(error);
+
+        // set new exception message if available from {{artifactId}} exception
+        if (exception instanceof {{classname}}Exception && isCauseNull)
+        {
+            error.message(exception.getMessage());
+        }
+        return errors;
+    }
+
+    /**
+     * Check for execution exception to decide which http status code to return
+     *
+     * @param exception Original exception
+     * @return execution exception instance
+     */
+    private Exception getExecutionExceptionCause(Exception exception)
+    {
+        Exception cause = null;
+        if (exception == null || exception.getCause() == null)
+        {
+            cause = exception;
+        }
+        else if (exception.getCause() instanceof Exception)
+        {
+            Exception exCause = (Exception) exception.getCause();
+
+            if (exception instanceof ExecutionException)
+            {
+                cause = exCause;
+            }
+            else
+            {
+                cause = getExecutionExceptionCause(exCause);
+            }
+        }
+        return cause;
+    }
+
+    /* Converts stacktrace array to string */
+    private String getStacktraceAsString(Exception exception)
+    {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        exception.printStackTrace(printWriter);
+        return stringWriter.getBuffer().toString();
+    }
+}

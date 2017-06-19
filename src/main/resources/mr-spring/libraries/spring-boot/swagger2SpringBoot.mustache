@@ -1,40 +1,70 @@
+/*
+ * Copyright {{year}} General Electric Company. All rights reserved.
+ */
 package {{basePackage}};
 
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.ExitCodeGenerator;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
- * Main entry point for Spring Boot project
+ * Main entry point for {{classname}} Spring Boot service
  */
 @EnableSwagger2
 @SpringBootApplication
+@EnableDiscoveryClient
 @EnableAspectJAutoProxy
 @ComponentScan(basePackages = "{{basePackage}}")
-public class Application implements CommandLineRunner {
+{{>generatedAnnotation}}
+public class {{classname}}Application extends WebMvcConfigurerAdapter
+{
+    /* Keeping reference to Reconciliation application context which will address resource-not-closed sonar violation */
+    private ConfigurableApplicationContext applicationContext;
 
+
+    /**
+     * Run the SpringApplication from the specified source using default settings.
+     *
+     * @param args The application arguments
+     */
+    public static void main(String[] args)
+    {
+        new {{classname}}Application().startApplication(args);
+    }
+
+
+    /* private method to start application */
+    private void startApplication(String[] args)
+    {
+        applicationContext = SpringApplication.run({{classname}}Application.class, args);
+        applicationContext.registerShutdownHook();
+    }
+
+
+    /* Change order of json converter to be default */
     @Override
-    public void run(String... arg0) throws Exception {
-        if (arg0.length > 0 && arg0[0].equals("exitcode")) {
-            throw new ExitException();
-        }
+    public final void extendMessageConverters(List<HttpMessageConverter<?>> converters)
+    {
+        //get json converter from default converter list
+        Optional<HttpMessageConverter<?>> converterOptional = converters.stream()
+                .filter(converter -> converter instanceof MappingJackson2HttpMessageConverter)
+                .findFirst();
+        // remove from current position
+        converterOptional.ifPresent(converters::remove);
+        //add as default at first place
+        converterOptional.ifPresent(jsonConverter -> converters.add(0, jsonConverter));
     }
 
-    public static void main(String[] args) throws Exception {
-        new SpringApplication(Application.class).run(args);
-    }
 
-    class ExitException extends RuntimeException implements ExitCodeGenerator {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public int getExitCode() {
-            return 10;
-        }
-
-    }
 }

@@ -1,5 +1,13 @@
+# Copyright {{year}} General Electric Company. All rights reserved.
 springfox.documentation.swagger.v2.path=/api-docs
-server.contextPath={{^contextPath}}/{{/contextPath}}{{#contextPath}}{{contextPath}}{{/contextPath}}
-server.port={{serverPort}}
-spring.jackson.date-format={{basePackage}}.RFC3339DateFormat
-spring.jackson.serialization.WRITE_DATES_AS_TIMESTAMPS=false
+#server.contextPath={{^contextPath}}/{{/contextPath}}{{#contextPath}}{{contextPath}}{{/contextPath}}
+#server.port={{serverPort}}
+server.port=0
+spring.application.name={{artifactId}}
+
+# To maintain IP address and hostname
+eureka.instance.preferIpAddress=true
+spring.cloud.client.hostname=localhost
+
+# for pretty json output from rest calls
+spring.jackson.serialization.indent_output=true

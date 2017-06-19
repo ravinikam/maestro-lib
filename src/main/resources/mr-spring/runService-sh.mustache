@@ -1,0 +1,12 @@
+#!/bin/bash
+# Copyright {{year}} General Electric Company. All rights reserved.
+
+BASEDIR="$(dirname $0)"
+JAR=$BASEDIR/{{artifactId}}-boot.jar
+
+JAVA_HOME=/usr/java/latest-64
+PATH=$JAVA_HOME/bin:$PATH
+
+java -version
+
+java -jar -DLOG_PATH=$BASEDIR $JAR
