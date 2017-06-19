@@ -1,6 +1,4 @@
-/*
- * Copyright {{year}} General Electric Company. All rights reserved.
- */
+
 package {{basePackage}};
 
 import java.util.List;
@@ -29,7 +27,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 {{>generatedAnnotation}}
 public class {{classname}}Application extends WebMvcConfigurerAdapter
 {
-    /* Keeping reference to Reconciliation application context which will address resource-not-closed sonar violation */
+    /* Keeping reference to {{classname}} application context which will address resource-not-closed sonar violation */
     private ConfigurableApplicationContext applicationContext;
 
 

@@ -57,7 +57,7 @@ public class MrSpringGenerator extends SpringCodegen
     @Override
     public String getHelp()
     {
-        return "Generates a Java SpringBoot Server application using the SpringFox integration for GE maestro services.";
+        return "Generates a Java SpringBoot Server application using the SpringFox integration for maestro services.";
     }
 
 
@@ -84,15 +84,11 @@ public class MrSpringGenerator extends SpringCodegen
         // build files
         supportingFiles.add(new SupportingFile("build-gradle.mustache", "", "build.gradle"));
         supportingFiles.add(new SupportingFile("settings-gradle.mustache", "", "settings.gradle"));
-        supportingFiles.add(new SupportingFile("imake-file.mustache", DEPLOY_DIR, "Imakefile"));
-        supportingFiles.add(new SupportingFile("build-gradle-deploy.mustache", DEPLOY_DIR, "build.gradle"));
 
         // deploy related files
         supportingFiles.add(new SupportingFile("service-jar.mustache", DEPLOY_DIR, artifactId + "-boot.jar.txt"));
 
-        supportingFiles.add(new SupportingFile("init.mustache", DEPLOY_DIR, "MR" + serviceName + ".init"));
         supportingFiles.add(new SupportingFile("runService-sh.mustache", DEPLOY_DIR, "run-" + artifactId + ".sh"));
-        supportingFiles.add(new SupportingFile("2product.mustache", DEPLOY_DIR, "toProduct"));
 
         // docker build files
         String dockerFolder = artifactId + "-docker";

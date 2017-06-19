@@ -1,5 +1,5 @@
 /*
- * Copyright {{year}} General Electric Company. All rights reserved.
+ * Copyright {{year}} Feb29 Company. All rights reserved.
  */
 
 buildscript {
@@ -12,7 +12,7 @@ buildscript {
 
     repositories {
         maven {
-            url "https://hc-us-east-aws-artifactory.cloud.health.ge.com/artifactory/maven-ext"
+            url "https://hc-us-east-aws-artifactory.cloud.feb29.com/artifactory/maven-ext"
         }
     }
 }
@@ -66,13 +66,13 @@ allprojects {
  
     repositories {
         maven {
-            url "https://hc-us-east-aws-artifactory.cloud.health.ge.com/artifactory/maven-ext"
+            url "https://hc-us-east-aws-artifactory.cloud.feb29.com/artifactory/maven-ext"
         }
         maven {
-            url "http://badger.mr.med.ge.com:8081/artifactory/maven-release-mr"
+            url "http://badger.mr.feb29.com:8081/artifactory/maven-release-mr"
         }
         maven {
-            url "http://badger.mr.med.ge.com:8081/artifactory/maven-snapshot-mr"
+            url "http://badger.mr.feb29.com:8081/artifactory/maven-snapshot-mr"
         }
     }
 }
@@ -175,7 +175,7 @@ project(":{{artifactId}}-api") {
         compile("io.swagger:swagger-annotations:" + swaggerVersion)
         compile("io.springfox:springfox-swagger2:" + springFoxVersion)
         compile("javax.validation:validation-api:" + javaxValidationVersion)
-        mrSwagger("com.ge.med.mr.Shared_Service_Utils:mr-swagger-codegen:1.2.0-SNAPSHOT")
+        mrSwagger("com.feb29.mr.mr.Shared_Service_Utils:mr-swagger-codegen:1.2.0-SNAPSHOT")
     }
 
     task copySwaggerCodegen(type: Copy) {
@@ -185,9 +185,9 @@ project(":{{artifactId}}-api") {
     }
 
     task cleanGeneratedDirectory(type: Delete) {
-        delete "$projectDir/src/main/java/com/ge/med/mr/{{artifactId}}/model"
-        delete "$projectDir/src/main/java/com/ge/med/mr/{{artifactId}}/api/{{serviceName}}.java"
-        delete "$projectDir/src/main/java/com/ge/med/mr/{{artifactId}}/ws/{{serviceName}}Controller.java"
+        delete "$projectDir/src/main/java/com/feb29/mr/{{artifactId}}/model"
+        delete "$projectDir/src/main/java/com/feb29/mr/{{artifactId}}/api/{{serviceName}}.java"
+        delete "$projectDir/src/main/java/com/feb29/mr/{{artifactId}}/ws/{{serviceName}}Controller.java"
     }
     clean.dependsOn cleanGeneratedDirectory
 

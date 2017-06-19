@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright {{year}} General Electric Company. All rights reserved. -->
+<!-- Copyright {{year}} Feb29 Company. All rights reserved. -->
 <configuration>
     <property name="LOG_FILE"
               value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/logs/{{artifactId}}.log}"/>
@@ -26,7 +26,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.ge.med.mr" level="INFO"/>
+    <logger name="com.feb29.mr" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="dayBasedFile"/>

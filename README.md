@@ -21,7 +21,7 @@ At this point, you've likely generated a client setup.  It will include somethin
 |-- src
 |--- main
 |---- java
-|----- com.ge.med.mr.MrSpringGenerator.java // generator file
+|----- com.feb29.mr.mr.MrSpringGenerator.java // generator file
 |---- resources
 |----- mr-spring // template files
 |----- META-INF

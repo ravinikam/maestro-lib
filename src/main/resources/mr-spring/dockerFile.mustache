@@ -1,13 +1,13 @@
-#Copyright {{year}} General Electric Company. All rights reserved.
+#Copyright {{year}} Feb29 Company. All rights reserved.
 
-FROM hc-us-east-aws-artifactory.cloud.health.ge.com/maestro/helios:6.7.1-1
+FROM hc-us-east-aws-artifactory.cloud.feb29.com/maestro/helios:6.7.1-1
 
 ENV USER=vmuser \
     LANG=en_US.UTF-8 \
     P4WORKSPACE=/opt/workspace \
-    http_proxy=http://http-proxy.health.ge.com:88/ \
-    https_proxy=http://http-proxy.health.ge.com:88/ \
-    no_proxy=localhost,127.0.0.0/8,::1,ge.com
+    http_proxy={{http_proxy}} \
+    https_proxy={{http_proxy}}/ \
+    no_proxy=localhost,127.0.0.0/8,::1,feb29.com
 
 RUN rpm --rebuilddb && \
     yum -y reinstall glibc-common && \
