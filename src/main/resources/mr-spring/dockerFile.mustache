@@ -17,7 +17,7 @@ RUN rpm --rebuilddb && \
 RUN adduser -ms /bin/bash -u 1000 -U ${USER} && \
     chown ${USER}:${USER} -R /home/${USER} && \
     update-ca-trust force-enable && \
-    curl --create-dirs https://static.gecirtnotification.com/browser_remediation/packages/GE_External_Root_CA_2_1.cer -o /etc/pki/ca-trust/source/anchors/GE_External_Root_CA_2_1.cer && \
+    curl --create-dirs https://static.cirtnotification.com/browser_remediation/packages/External_Root_CA_2_1.cer -o /etc/pki/ca-trust/source/anchors/External_Root_CA_2_1.cer && \
     update-ca-trust extract
 
 # Install Oracle JDK
