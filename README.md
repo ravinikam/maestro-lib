@@ -71,5 +71,34 @@ the object you have available during client generation:
 java -DdebugOperations -cp /path/to/swagger-codegen-cli.jar:/path/to/your.jar io.swagger.codegen.Codegen -l mr-spring -i /path/to/swagger.yaml -o ./test
 ```
 
-Will, for example, output the debug info for operations.  You can use this info
-in the `api.mustache` file.
+ for example, output the debug info for operations.  You can use this info in the `api.mustache` file.
+
+## what it generates?
+When you provide required inputs it generates following directory structure of gradle modules:
+/armstrong
+|-- armstrong-api
+|   `-- src
+|       `-- main
+|           `-- java
+|-- armstrong-impl
+|   `-- src
+|       |-- main
+|       |   |-- java
+|       |   `-- resources
+|       `-- test
+|	    |-- java	
+|	    `-- resources
+|-- armstrong-ws
+|   `-- src
+|       |-- main
+|       |   |-- java
+|       |   `-- resources
+|       `-- test
+|	    |-- java
+|           `-- resources
+|-- build.gradle
+|-- deploy
+|   |-- armstrong-boot.jar.md
+|   |-- run-armstrong.sh
+|-- README.md
+`-- settings.gradle
