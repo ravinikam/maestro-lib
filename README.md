@@ -76,12 +76,12 @@ java -DdebugOperations -cp /path/to/swagger-codegen-cli.jar:/path/to/your.jar io
 ## what it generates?
 When you provide required inputs it generates following directory structure of gradle modules:
 ```
-.armstrong
-|-- armstrong-api
+.example
+|-- example-api
 |   `-- src
 |       `-- main
 |           `-- java
-|-- armstrong-impl
+|-- example-impl
 |   `-- src
 |       |-- main
 |       |   |-- java
@@ -89,7 +89,7 @@ When you provide required inputs it generates following directory structure of g
 |       `-- test
 |	    |-- java	
 |	    `-- resources
-|-- armstrong-ws
+|-- example-ws
 |   `-- src
 |       |-- main
 |       |   |-- java
@@ -99,8 +99,8 @@ When you provide required inputs it generates following directory structure of g
 |           `-- resources
 |-- build.gradle
 |-- deploy
-|   |-- armstrong-boot.jar.md
-|   |-- run-armstrong.sh
+|   |-- example-boot.jar.md
+|   |-- run-example.sh
 |-- README.md
 `-- settings.gradle
 ```
